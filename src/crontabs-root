@@ -1,0 +1,2 @@
+*/10 * * * * /usr/bin/update_db
+*/5 * * * * /usr/bin/wovyn_get_sensor_data_post
