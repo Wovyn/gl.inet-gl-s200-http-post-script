@@ -67,6 +67,9 @@ The following is an example of the JSON tht arrives at my HTTP endpoint:
 }
 ```
 
+## 3D Printable Enclosure
+I also designed a 3D printable enclousre for the A0+A1 configuration.  It's a first revision, and while tweaking the top lid I forgot to add tabs to hold in in place.  That will be coming with a future revision.
+
 ## TODO
 * Add script to report knob press or turn
 * Add script to report PIR Human Detection
