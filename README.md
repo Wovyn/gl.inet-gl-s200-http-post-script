@@ -38,7 +38,7 @@ Installation of my script is simple.
 9. The script should now begin running every 5 minutes and reporting the data from your Thread Development Boards
 
 ## Sample JSON
-The following is an example of the JSON tht arrives at my HTTP endpoint:
+The following is an example of the JSON that arrives at my HTTP endpoint:
 ```
 {
    "report_intervel":300,
