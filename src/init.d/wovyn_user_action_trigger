@@ -1,0 +1,13 @@
+#!/bin/sh /etc/rc.common
+
+START=95  # Start after network services
+USE_PROCD=1  # Use procd to manage the service
+
+start_service() {
+    procd_open_instance
+    procd_set_param command /usr/bin/wovyn_user_action_trigger
+    procd_set_param respawn  # Restart if it crashes
+    procd_set_param stdout 1  # Forward stdout to logd
+    procd_set_param stderr 1  # Forward stderr to logd
+    procd_close_instance
+}
