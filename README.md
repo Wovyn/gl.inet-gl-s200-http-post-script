@@ -93,9 +93,9 @@ Installation of this script is also simple.
    * <esc> i  (enter insert mode)
    * (copy/paste or type the contents of the file `/src/init.d/wovyn_user_action_trigger`)
    * <esc> :wq  (write the file and exit)
-   * `chmod +x /etc/init.d/demo_user_action_trigger` (make the file executable)
-   * `/etc/init.d/demo_user_action_trigger enable`  (enable the service to start at boot)
-   * (optional) `/etc/init.d/demo_user_action_trigger start`  (start the service now)
+   * `chmod +x /etc/init.d/wovyn_user_action_trigger` (make the file executable)
+   * `/etc/init.d/wovyn_user_action_trigger enable`  (enable the service to start at boot)
+   * (optional) `/etc/init.d/wovyn_user_action_trigger start`  (start the service now)
 7. The script should now begin running every time the GL-S200 boots
 
 ## Sample JSON
