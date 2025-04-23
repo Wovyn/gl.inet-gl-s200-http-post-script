@@ -1,0 +1,103 @@
+#!/usr/bin/env eco
+--
+-- Version 1.0
+--
+-- Note, this file is stored on the GL-S200 as /usr/bin/wovyn_user_action_trigger
+--
+-- Usage: wovyn_user_action_trigger
+--
+-- Make sure to set your HTTP endpoint.  This script listens for the events that are reported
+-- when a user interacts with the knob on a Thread Development Board
+--
+-- The event will be POSTed as JSON to your endpoint.
+--
+-- The JSON will include a "trigger" property with identifies the sensor by it's EUI64 address.
+--
+
+local ubus = require 'eco.ubus'
+local sys = require 'eco.sys'
+local cjson = require 'cjson'
+local log = require "eco.log"
+
+-- Configuration for HTTP endpoint
+local HTTP_ENDPOINT = "http://{your.server.hostname}:{port number}/{path}"
+
+local OPT_TURNING_THE_KNOB = 1
+local OPT_PRESS_THE_KNOB = 2
+
+-- log.level(log.LOG_INFO)
+-- https://neopallium.github.io/lualogging/manual.html
+-- log.setLevel(logging.DEBUG) (or .INFO, .WARN, .ERROR, .FATAL)
+
+-- Function to send HTTP POST request using curl
+local function send_event_to_server(event_data)
+    log.debug('Sending event data to server: ' .. event_data)
+    
+    -- Create temporary file for the JSON data
+    local temp_file = "/tmp/event_data_" .. os.time() .. ".json"
+    local file = io.open(temp_file, "w")
+    if not file then
+        log.err("Failed to create temporary file for HTTP request")
+        return
+    end
+    file:write(event_data)
+    file:close()
+    
+    -- Build the curl command
+    local cmd = string.format(
+        'curl -s -o /dev/null -w "%%{http_code}" -X POST -H "Content-Type: application/json" -d @%s %s',
+        temp_file,
+        HTTP_ENDPOINT
+    )
+    
+    -- Execute the command
+    local handle = io.popen(cmd)
+    local result = handle:read("*a")
+    handle:close()
+    
+    -- Clean up temporary file
+    os.remove(temp_file)
+    
+    -- Check result
+    if result == "200" then
+        log.info('Successfully sent event to server')
+    else
+        log.err('Failed to send event to server: HTTP ' .. result)
+    end
+end
+
+sys.signal(sys.SIGINT, function()
+    print('\nGot SIGINT, now quit')
+    eco.unloop()
+end)
+
+local con, err = ubus.connect()
+if not con then
+    error(err)
+end
+
+con:listen('user_active_trigger', function(ev, msg)
+    local event_data = cjson.encode(msg)
+--    log.info('Received user active trigger: ' .. ev .. ' ' .. event_data)
+
+    local trigger, operation, direction = msg.trigger, msg.operation, msg.direction
+    if operation == OPT_TURNING_THE_KNOB then
+        log.info(trigger .. ': Turn the knob ' .. direction)
+        -- Update the "operation" property to "turning" in the msg table
+        msg.operation = "turning"
+        -- Re-encode the updated msg table to JSON
+        event_data = cjson.encode(msg)
+        -- Send the event data to the HTTP endpoint
+        send_event_to_server(event_data)
+    elseif operation == OPT_PRESS_THE_KNOB then
+        log.info(trigger .. ': Press the knob.')
+        -- Update the "operation" property to "press" in the msg table
+        msg.operation = "press"
+        -- Re-encode the updated msg table to JSON
+        event_data = cjson.encode(msg)
+        -- Send the event data to the HTTP endpoint
+        send_event_to_server(event_data)
+    else
+        log.err('Unknown operation!')
+    end
+end)
